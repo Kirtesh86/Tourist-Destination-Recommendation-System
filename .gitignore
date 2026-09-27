@@ -1,0 +1,11 @@
+# Python cache and virtual environments
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Local credentials and deployment secrets
+.streamlit/secrets.toml
+
+# Preserve local rollback snapshots without publishing duplicates
+_backups/
