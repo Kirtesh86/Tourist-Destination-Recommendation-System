@@ -1,46 +1,55 @@
-# Tourist Destination Recommendation System Using KNN
+# Wayfinder — Travel Destination Recommendation System
 
-A small, beginner-friendly machine learning project that recommends Indian destinations from a traveler's budget, trip duration, and interests. The interface is built with Streamlit; recommendations use scikit-learn's K-Nearest Neighbors search.
-
-The app uses curated Unsplash photos and Google Fonts for its visual styling. These are optional: the recommendation interface remains usable without them, with local color and system-font fallbacks.
+Wayfinder is a simple Streamlit travel planner that recommends five cities from a traveler's budget, trip length, location, and travel styles.
 
 ## Project objective
 
-Help a traveler explore five Indian destinations whose sample trip profiles are closest to their preferences. This is a similarity-based recommendation demo, not a live travel booking or price service.
+Help travelers discover places that fit their interests and practical preferences. It is a discovery planner, not a booking service.
 
 ## Dataset
 
-`tourist_destinations.csv` contains 35 Indian destinations. Each row has a sample estimated trip budget (in rupees), suggested number of days, project-assigned interest scores from 1 to 10, and state/region labels for filtering. Scores are illustrative inputs for the model, not official ratings; budgets are not live quotes.
+The primary file, `worldwide_travel_cities.csv`, is the Kaggle **Worldwide Travel Cities (Ratings and Climate)** dataset. It contains 560 city profiles in 167 countries and seven regions.
+
+See [DATA_SOURCES.md](DATA_SOURCES.md) for dataset comparison, attribution, and limitations.
 
 ## Features
 
-- `Destination`: place name
-- `Budget`: estimated trip budget in INR
-- `Days`: suggested trip duration
-- `Nature`: nature and scenery interest score
-- `Beach`: beach interest score
-- `Adventure`: adventure interest score
-- `Culture`: culture and history interest score
-- `State` and `Region`: location metadata used by the region filter and result cards; these are not KNN model features
+- Six adjustable travel styles: Cultural Immersion, Nature and Wildlife, Adventure and Thrill Sports, Food and Culinary Tourism, Urban Exploration, and Wellness and Slow Travel.
+- Budget amount with currency selection: USD, INR, EUR, GBP, AED, AUD, CAD, or JPY.
+- Days, region, and country selectors.
+- An interactive map, direct Google Maps links, and destination-detail links.
+- Live exchange rates from Frankfurter, with a cached fallback when the service is unavailable.
+- Currency planning estimates and a flight, stay, food, and activity cost split for every match.
+- Current conditions and a three-day forecast from Open-Meteo.
+- Saved favourites, CSV export, and PDF export.
+- A two or three destination comparison tool.
+- Shareable planner settings in the browser URL.
+- Light/dark mode plus larger-text and reduced-motion accessibility controls.
+- Five nearest city profiles ranked with scaled KNN distance.
 
-The app asks for budget, days, and four interest ratings (each 1–10).
+## How KNN recommendations work
 
-## KNN algorithm
+The dataset provides city ratings from 0 to 5 for nine travel themes. The app:
 
-K-Nearest Neighbors (KNN) finds the destination profiles closest to the traveler in feature space. This project uses `NearestNeighbors` with Euclidean distance. It is a similarity search, rather than a model that predicts a destination label.
+1. Loads the CSV with Pandas and selects the source's nine theme scores.
+2. Converts the six travel-style sliders into a weighted nine-theme traveller profile.
+3. Uses `StandardScaler` to scale the source scores before distance calculations.
+4. Applies the selected budget, days, region, and country filters.
+5. Fits scikit-learn's `NearestNeighbors` model to the filtered cities and queries it with the user's interest profile.
+6. Shows up to five nearest destinations. A lower Euclidean distance means the city profile is closer to the selected interests.
 
-### How recommendations work
+The entered budget is converted to USD with a live exchange rate and mapped to the source's `Budget`, `Mid-range`, or `Luxury` category for filtering. Recommendation cards show a planning estimate in the selected currency. The underlying dataset supplies only a category, so that estimate is calculated from the category and suggested trip duration. It is not a live hotel, flight, or booking quote.
 
-1. Load the CSV with Pandas and select `Budget`, `Days`, and the four interest scores.
-2. Fit `StandardScaler` to destination features and transform them. This prevents the larger rupee values from dominating distance calculations.
-3. Convert the submitted user preferences to the same feature order and transform them with that already-fitted scaler.
-4. Optionally limit the candidates to a selected region. KNN still uses the scaler fitted on the full dataset, so regional results use the same feature scale.
-5. Query KNN for up to five nearest destination rows in the chosen region.
-6. Show each place, its state, sample budget, suggested days, and Euclidean distance. Expanded details compare each user interest score with that destination's score. A smaller KNN distance indicates a closer overall match.
+## Live-data services
+
+- **Exchange rates:** [Frankfurter](https://frankfurter.dev/), cached for one hour.
+- **Weather:** [Open-Meteo](https://open-meteo.com/), cached for 15 minutes.
+
+These services can be temporarily unavailable. The app continues to recommend destinations; exchange conversion then uses a clearly labelled offline fallback and weather shows an availability message.
 
 ## Install dependencies
 
-Use Python 3.12 (the current Streamlit Community Cloud default) or another version supported by the pinned packages. From the project directory, create and activate a virtual environment if desired, then run:
+Use Python 3.10 or newer. From the project directory, install the packages:
 
 ```bash
 python -m pip install -r requirements.txt
@@ -48,32 +57,18 @@ python -m pip install -r requirements.txt
 
 ## Run the project
 
-From the directory containing `app.py` and the CSV:
-
 ```bash
 streamlit run app.py
 ```
 
-Streamlit opens the app in your browser. Enter your preferences and select **Find my destinations**.
-
-## Deploy on Streamlit Community Cloud
-
-The app is ready to deploy from GitHub. Include `app.py`, `tourist_destinations.csv`, `requirements.txt`, and `.streamlit/config.toml` in the repository. The `.gitignore` keeps the local rollback copy, Python cache, and any Streamlit secrets out of Git.
-
-1. Push this project to a GitHub repository that you have admin access to.
-2. Sign in to [Streamlit Community Cloud](https://share.streamlit.io/) with GitHub.
-3. Select **Create app**, choose the repository and branch, and set the app file to `app.py`.
-4. Deploy. Community Cloud installs the pinned packages from `requirements.txt`.
-
-This project has no API keys or secrets. The destination dataset and app source will be visible to anyone with access to the GitHub repository. Community Cloud supports public repositories by default; private repositories require granting it additional GitHub access. See Streamlit's [deployment guide](https://docs.streamlit.io/deploy/streamlit-community-cloud/deploy-your-app/deploy) and [dependency guide](https://docs.streamlit.io/deploy/streamlit-community-cloud/deploy-your-app/app-dependencies) for current instructions.
+Streamlit opens Wayfinder in your browser. Enter a budget and currency, select days, region, country, and travel styles, then choose **Find my top 5**.
 
 ## Project files
 
 ```text
 app.py
-tourist_destinations.csv
+worldwide_travel_cities.csv
 requirements.txt
+DATA_SOURCES.md
 README.md
-.streamlit/config.toml
-.gitignore
 ```
